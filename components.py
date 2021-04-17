@@ -176,14 +176,48 @@ class Hexagon:
         self.edges = Hexagon.compute_edges(self.points)
         self.selected = None
 
-    def draw_laturi(self, window, color=BLACK, border_width=5):
-        pg.draw.lines(window, color, True, [(p.x, p.y)
-                      for p in self.points], border_width)
+    def draw_laturi(self, window, pos, border_width=5):
+        # Varianta 1 - construieste automat 6 linii negre
+        if self.selected:
+            pg.draw.lines(window, BLACK, True, [
+                          (p.x, p.y) for p in self.points], border_width)
+            return
 
-    def draw(self, window, color=LIGHT_GRAY):
+        # Varianta 2 - coloreaza fiecare linie in parte. Astfel putem da culoare muchiilor si face tabla mai user-friendly
+        points = [(p.x, p.y) for p in self.points]
+        row, col = pos
+        min_color, max_color = INITIAL_TO_COLOR[Game.MIN_PLAYER], INITIAL_TO_COLOR[Game.MAX_PLAYER]
+
+        # Laturile din dreapta
+        color = min_color if col == Game.COLS - 1 else BLACK
+        pg.draw.line(window, color, points[1], points[2], border_width)
+
+        # Latura din dreapta-sus
+        color = min_color if col == Game.COLS - \
+            1 else (max_color if row == 0 else BLACK)
+        pg.draw.line(window, color, points[2], points[3], border_width)
+
+        # Laturile din stanga-sus
+        color = max_color if row == 0 else BLACK
+        pg.draw.line(window, color, points[3], points[4], border_width)
+
+        # Latura din stanga
+        color = min_color if col == 0 else BLACK
+        pg.draw.line(window, color, points[4], points[5], border_width)
+
+        # Latura din stanga-jos
+        color = min_color if col == 0 else (
+            max_color if row == Game.ROWS - 1 else BLACK)
+        pg.draw.line(window, color, points[5], points[0], border_width)
+
+        # Latura din dreapta_jos
+        color = max_color if row == Game.ROWS - 1 else BLACK
+        pg.draw.line(window, color, points[0], points[1], border_width)
+
+    def draw(self, window, pos, color=LIGHT_GRAY):
         pg.draw.polygon(window, color, [(point.x, point.y)
                         for point in self.points])
-        self.draw_laturi(window)
+        self.draw_laturi(window, pos)
 
     def check_inside(self, point):
         """Metoda a clasei Hexagon care verifica daca un punct primit ca input se afla in interiorul hexagonului. Se efectuaza cu algorimtul "Ray casting algorithm".
@@ -245,14 +279,14 @@ class HexGame:
             for j in range(Game.COLS):
                 if self.hexagons[i][j].selected != None:
                     self.hexagons[i][j].draw(
-                        window, INITIAL_TO_COLOR[self.hexagons[i][j].selected])
+                        window, (i, j), INITIAL_TO_COLOR[self.hexagons[i][j].selected])
                     if (i, j) in path:
                         pg.draw.circle(
                             window, BLACK, (self.hexagons[i][j].x, self.hexagons[i][j].y), self.hexagons[i][j].radius - 20)
                 elif hovered != None and i == hovered[0] and j == hovered[1]:
-                    self.hexagons[i][j].draw(window, hovered[2])
+                    self.hexagons[i][j].draw(window, (i, j), hovered[2])
                 else:
-                    self.hexagons[i][j].draw(window)
+                    self.hexagons[i][j].draw(window, (i, j))
 
 
 # ALGORITHM COMPONENTS
